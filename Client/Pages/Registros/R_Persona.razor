@@ -1,0 +1,181 @@
+@page "/R_Persona"
+@page "/R_Persona/{PersonaId:int}"
+
+@inject IPersonaService personaService
+@inject NotificationService Notifications
+
+<PageTitle>Registro Persona</PageTitle>
+
+<body>
+    <EditForm Model="persona" OnValidSubmit="Save">
+        <DataAnnotationsValidator/>
+
+        <div class="container">
+            <div class="card text-dark bg-light mb-3 shadow-lg">
+                <div class="card-header">
+                    <h4 class="text-center"><b>People's form.</b></h4>
+                </div>
+                <div class="card-body">
+
+                    <div class ="form-group">
+                        <div class="col-3 mb-3">
+                            <label for="PersonaId">PeopleId:</label>
+                            <div class="input-group">
+                                <InputNumber @bind-Value="persona.PersonaId" class="form-control"/>
+                                <buttton class="btn btn-primary" type="button" id="Bbuscar" @onclick="Find"><i class="oi oi-magnifying-glass"/></buttton>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Nombre">Name:</label>
+                            <div class="input-group">
+                                <InputText @bind-Value="persona.Nombre" class="form-control" placeholder="Insert ur name"/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Celular">CellPhone:</label>
+                            <div class="input-group">
+                                <InputText @bind-Value="persona.Celular" class="form-control" placeholder="Insert a value"/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Telefono">Phone:</label>
+                            <div class="input-group">
+                                <InputText @bind-Value="persona.Telefono" class="form-control" placeholder="Insert a value"/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Cedula">ID:</label>
+                            <div class="input-group">
+                                <InputText @bind-Value="persona.Cedula" class="form-control" placeholder="Insert a value"/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Aportado">Amount:</label>
+                            <div class="input-group">
+                                <InputNumber @bind-Value="persona.Total_Aportado" class="form-control" disabled="true"/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="Nac">Birth Date:</label>
+                            <div class="input-group mb-6">
+                                <input @bind-value="persona.Fecha_Nacimiento"type="date"  class="form-control" aria-label="Recipient's username"
+                                aria-describedby="basic-addon2" id="Nac"/>
+                            </div>
+                        </div>
+
+                        
+                    </div>
+
+                </div>
+                <div class="card-footer">
+                    <div class ="row">
+                        <div class="btn-group">
+                            <button type=submit class="btn btn-success" @onclick="Save"><i class="oi oi-document"/>Save</button>
+                            <button type=button class="btn btn-primary" @onclick="New"><i class="oi oi-document"/>New</button>
+                            <button type=button class="btn btn-danger" @onclick="Delete"><i class="oi oi-trash"/>Delete</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </EditForm>
+</body>
+
+
+@code
+{
+    [Parameter]
+    public int PersonaId {get; set;}
+
+    public Persona persona {get; set;} = new Persona();
+
+    protected override void OnInitialized()
+    {
+        if(PersonaId > 0){
+            this.persona.PersonaId = PersonaId;
+
+        }
+    }
+
+    public void New(){
+        this.persona = new Persona();
+    }
+
+    async void Find()
+    {
+        var personaEncontrada = await personaService.Find(persona.PersonaId);
+        if(personaEncontrada != null)
+        {
+            this.persona = personaEncontrada;
+
+        }
+        else
+        {
+            Console.WriteLine("Persona no encontrada.");
+            New();
+        }
+    }
+
+    public void Save()
+    {
+        if(Validar()){
+            personaService.Save(this.persona);
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Form has been cleaned", Detail = "New instance added", Duration = 4000 });
+            New();
+
+        }
+        else
+        {
+
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Form has been cleaned", Detail = "Error at saving", Duration = 4000 });
+            New();
+        }
+
+       
+
+    }
+
+    public void Delete()
+    {
+        if(Validar())
+        {
+            personaService.Delete(this.persona.PersonaId);
+            New();
+            ShowNotification(new NotificationMessage { Severity =NotificationSeverity.Success, Summary ="Form has been cleaned",Detail="Instance deleted", Duration =4000});
+
+        }
+        else
+        {
+            New();
+            ShowNotification(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Form has been cleaned", Detail = "Instance deleted", Duration = 4000 });
+        }
+
+       
+    }
+
+    public bool Validar()
+    {
+        if(this.persona.Nombre != null && this.persona.Celular != null && this.persona.Cedula != null && this.persona.Fecha_Nacimiento != null)
+        {
+            return true;
+
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void ShowNotification(NotificationMessage Message)
+    {
+        Notifications.Notify(Message);
+    }
+
+
+    
+
+}
+
